@@ -1,4 +1,5 @@
 package fr.ekinci.corbawrapper;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.omg.CORBA.ORB;
@@ -9,27 +10,43 @@ import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 import org.omg.PortableServer.Servant;
 
-/** 
- * @author Gugelhupf (eau-de-la-seine)
- */
-public class CORBAServer{
-    private ORB orb;
-    private POA rootpoa;
-    private NamingContextExt ncRef;
 
-    public CORBAServer(String[] args) 
+/**
+ * Corba wrapper class for server
+ * Note : Don't forget to launch the ORBD (or tnameserv) program before launching your Java program
+ *     For Linux   : orbd -ORBInitialPort 1050 -ORBInitialHost localhost&
+ *     For Windows : start orbd -ORBInitialPort 1050 -ORBInitialHost localhost
+ * 
+ * @author Gokan EKINCI
+ */
+public class CORBAServer implements AutoCloseable {
+    private final ORB orb;
+    private final POA rootpoa;
+    private final NamingContextExt ncRef;
+
+    public CORBAServer(String host, int port) 
         throws org.omg.PortableServer.POAManagerPackage.AdapterInactive, 
             org.omg.CORBA.ORBPackage.InvalidName
     {
-        this.orb = ORB.init(args, null);
-        this.rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+        
+        // Initialize the ORB
+        this.orb = ORB.init(
+            new String[]{"-ORBInitialPort", String.valueOf(port), "-ORBInitialHost", host}, 
+            null
+        );
+
+        // Initialize the RootPOA
+        org.omg.CORBA.Object objPoa = orb.resolve_initial_references("RootPOA");
+        this.rootpoa = POAHelper.narrow(objPoa);
         this.rootpoa.the_POAManager().activate();
+
+        // Initialize the NameService
         org.omg.CORBA.Object objRef = this.orb.resolve_initial_references("NameService");
         this.ncRef = NamingContextExtHelper.narrow(objRef);
     }
 
     /**
-     * <p> Add a service </p>
+     * Add service
      * 
      * @param serviceName
      * @param implementation
@@ -48,7 +65,7 @@ public class CORBAServer{
      */
     public <IMPL extends Servant, HELP> void addService(
         String serviceName,
-        IMPL implementation, // L'intérêt ajouter ce paramètre est qu'il peut contenir des arguments
+        IMPL implementation,
         Class<HELP> helpClass    
     ) 
         throws IllegalArgumentException, 
@@ -70,18 +87,21 @@ public class CORBAServer{
         this.ncRef.rebind(path, href);
     }
 
+    
     /**
-     * <p>Start the ORB</p>
+     *  Start the ORB
      */
     public void run(){
         orb.run();
     }
 
+    
     /**
-     * <p>Shutdown ORB</p>
+     * Stop the ORB (shutdown)
      */
-    public void shutdown(){
-        orb.shutdown(false);
+    @Override
+    public void close() throws Exception {
+        orb.shutdown(false);       
     }
 
 }

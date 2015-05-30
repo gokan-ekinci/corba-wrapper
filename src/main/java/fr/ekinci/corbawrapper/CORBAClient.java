@@ -1,25 +1,36 @@
 package fr.ekinci.corbawrapper;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
 
-/** 
- * @author Gugelhupf (eau-de-la-seine)
+
+/**
+ * Corba wrapper class for client
+ * 
+ * @author Gokan EKINCI
  */
-public class CORBAClient{
-    private ORB orb;
-    private NamingContextExt ncRef;
-    
-    public CORBAClient(String[] args) throws org.omg.CORBA.ORBPackage.InvalidName {
-        this.orb = ORB.init(args, null);
+public class CORBAClient implements AutoCloseable {
+    private final ORB orb;
+    private final NamingContextExt ncRef;
+
+    public CORBAClient(String host, int port) throws org.omg.CORBA.ORBPackage.InvalidName {
+        
+        // Initialize the ORB
+        this.orb = ORB.init(
+            new String[]{"-ORBInitialPort", String.valueOf(port), "-ORBInitialHost", host}, 
+            null
+        );
+
+        // Initialize the NameService
         org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
         this.ncRef = NamingContextExtHelper.narrow(objRef);
     }
 
     /**
-     * <p>Retrieve service</p>
+     * Obtain service
      * 
      * @param serviceName
      * @param helpClass
@@ -44,4 +55,14 @@ public class CORBAClient{
         Method m = helpClass.getMethod("narrow", org.omg.CORBA.Object.class);
         return (SERVICE) m.invoke(null, ncRef.resolve_str(serviceName));
     }
+    
+
+    /**
+     * Stop the ORB (shutdown)
+     */
+    @Override
+    public void close() throws Exception {
+        orb.shutdown(false);       
+    }
 }
+
