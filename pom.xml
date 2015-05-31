@@ -5,7 +5,7 @@
         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>gokan.ekinci</groupId>
-    <artifactId>corbawrapper</artifactId>
+    <artifactId>corba-wrapper</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <description>A CORBA wrapper project which contains classes for server and client side</description>
