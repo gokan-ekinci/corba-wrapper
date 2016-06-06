@@ -1,6 +1,5 @@
 package fr.ekinci.corbawrapper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
@@ -24,25 +23,36 @@ public class CORBAServer implements AutoCloseable {
     private final POA rootpoa;
     private final NamingContextExt ncRef;
 
-    public CORBAServer(String host, int port) 
-        throws org.omg.PortableServer.POAManagerPackage.AdapterInactive, 
-            org.omg.CORBA.ORBPackage.InvalidName
-    {
-        
-        // Initialize the ORB
-        this.orb = ORB.init(
-            new String[]{"-ORBInitialPort", String.valueOf(port), "-ORBInitialHost", host}, 
-            null
-        );
+    /**
+     * CORBAServer constructor
+     *
+     * @param host
+     * @param port
+     * @throws CORBAException
+     * which encapsulate:
+     *     org.omg.PortableServer.POAManagerPackage.AdapterInactive
+     *     org.omg.CORBA.ORBPackage.InvalidName
+     */
+    public CORBAServer(String host, int port) throws CORBAException {
+        try {
+            // Initialize the ORB
+            this.orb = ORB.init(
+                    new String[]{"-ORBInitialPort", String.valueOf(port), "-ORBInitialHost", host},
+                    null
+            );
 
-        // Initialize the RootPOA
-        org.omg.CORBA.Object objPoa = orb.resolve_initial_references("RootPOA");
-        this.rootpoa = POAHelper.narrow(objPoa);
-        this.rootpoa.the_POAManager().activate();
+            // Initialize the RootPOA
+            org.omg.CORBA.Object objPoa = orb.resolve_initial_references("RootPOA");
+            this.rootpoa = POAHelper.narrow(objPoa);
+            this.rootpoa.the_POAManager().activate();
 
-        // Initialize the NameService
-        org.omg.CORBA.Object objRef = this.orb.resolve_initial_references("NameService");
-        this.ncRef = NamingContextExtHelper.narrow(objRef);
+            // Initialize the NameService
+            org.omg.CORBA.Object objRef = this.orb.resolve_initial_references("NameService");
+            this.ncRef = NamingContextExtHelper.narrow(objRef);
+        } catch (org.omg.PortableServer.POAManagerPackage.AdapterInactive
+                | org.omg.CORBA.ORBPackage.InvalidName e){
+            throw new CORBAException(e);
+        }
     }
 
     /**
@@ -51,40 +61,44 @@ public class CORBAServer implements AutoCloseable {
      * @param serviceName
      * @param implementation
      * @param helpClass
-     * @throws IllegalArgumentException
-     * @throws SecurityException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws org.omg.CosNaming.NamingContextPackage.InvalidName
-     * @throws org.omg.CosNaming.NamingContextPackage.NotFound
-     * @throws org.omg.CosNaming.NamingContextPackage.CannotProceed
-     * @throws org.omg.PortableServer.POAPackage.ServantNotActive
-     * @throws org.omg.PortableServer.POAPackage.WrongPolicy
+     * @throws CORBAException
+     * which encapsulate:
+     *     java.lang.IllegalArgumentException
+     *     java.lang.SecurityException
+     *     java.lang.IllegalAccessException
+     *     java.lang.reflect.InvocationTargetException
+     *     java.lang.NoSuchMethodException
+     *     org.omg.CosNaming.NamingContextPackage.InvalidName
+     *     org.omg.CosNaming.NamingContextPackage.NotFound
+     *     org.omg.CosNaming.NamingContextPackage.CannotProceed
+     *     org.omg.PortableServer.POAPackage.ServantNotActive
+     *     org.omg.PortableServer.POAPackage.WrongPolicy
      */
     public <IMPL extends Servant, HELP> void addService(
         String serviceName,
         IMPL implementation,
         Class<HELP> helpClass    
     ) 
-        throws IllegalArgumentException, 
-            SecurityException, 
-            InstantiationException, 
-            IllegalAccessException, 
-            InvocationTargetException, 
-            NoSuchMethodException, 
-            org.omg.CosNaming.NamingContextPackage.InvalidName, 
-            org.omg.CosNaming.NamingContextPackage.NotFound, 
-            org.omg.CosNaming.NamingContextPackage.CannotProceed, 
-            org.omg.PortableServer.POAPackage.ServantNotActive,
-            org.omg.PortableServer.POAPackage.WrongPolicy
+        throws CORBAException
     {
-        org.omg.CORBA.Object ref = this.rootpoa.servant_to_reference(implementation);
-        Method m = helpClass.getMethod("narrow", org.omg.CORBA.Object.class);
-        org.omg.CORBA.Object href = (org.omg.CORBA.Object) m.invoke(null, ref);
-        NameComponent path[] = this.ncRef.to_name( serviceName );
-        this.ncRef.rebind(path, href);
+        try {
+            org.omg.CORBA.Object ref = this.rootpoa.servant_to_reference(implementation);
+            Method m = helpClass.getMethod("narrow", org.omg.CORBA.Object.class);
+            org.omg.CORBA.Object href = (org.omg.CORBA.Object) m.invoke(null, ref);
+            NameComponent path[] = this.ncRef.to_name(serviceName);
+            this.ncRef.rebind(path, href);
+        } catch(java.lang.IllegalArgumentException
+                | java.lang.SecurityException
+                | java.lang.IllegalAccessException
+                | java.lang.reflect.InvocationTargetException
+                | java.lang.NoSuchMethodException
+                | org.omg.CosNaming.NamingContextPackage.InvalidName
+                | org.omg.CosNaming.NamingContextPackage.NotFound
+                | org.omg.CosNaming.NamingContextPackage.CannotProceed
+                | org.omg.PortableServer.POAPackage.ServantNotActive
+                | org.omg.PortableServer.POAPackage.WrongPolicy e){
+            throw new CORBAException(e);
+        }
     }
 
     
