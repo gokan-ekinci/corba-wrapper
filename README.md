@@ -10,7 +10,7 @@ CORBA is an architecture designed by OMG to facilitate the communication of syst
 
 In spite of those disadvantages, CORBA use interoperable components, and its IIOP protocol is stream based. I cannot configure your firewalls for CORBA, but I can create a wrapper in order to use CORBA easily.
 
-## How to use **corbawrapper**
+## How to use **corba-wrapper**
 
 ### 1. IDL
 
