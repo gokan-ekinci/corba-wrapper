@@ -5,8 +5,8 @@ package fr.ekinci.corbawrapper;
  *
  * @author Gokan EKINCI
  */
-public class CORBAException extends Exception {
-	public CORBAException(Throwable throwable){
+public class CorbaException extends Exception {
+	public CorbaException(Throwable throwable){
 		super(throwable);
 	}
 }

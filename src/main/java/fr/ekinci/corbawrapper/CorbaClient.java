@@ -10,19 +10,19 @@ import org.omg.CosNaming.NamingContextExtHelper;
  * 
  * @author Gokan EKINCI
  */
-public class CORBAClient implements AutoCloseable {
+public class CorbaClient implements AutoCloseable {
     private final ORB orb;
     private final NamingContextExt ncRef;
 
     /**
-     * CORBAClient constructor
+     * CorbaClient constructor
      *
      * @param host
      * @param port
-     * @throws CORBAException
+     * @throws CorbaException
      * which encapsulate: org.omg.CORBA.ORBPackage.InvalidName
      */
-    public CORBAClient(String host, int port) throws CORBAException {
+    public CorbaClient(String host, int port) throws CorbaException {
         try{
             // Initialize the ORB
             this.orb = ORB.init(
@@ -34,7 +34,7 @@ public class CORBAClient implements AutoCloseable {
             org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
             this.ncRef = NamingContextExtHelper.narrow(objRef);
         } catch (org.omg.CORBA.ORBPackage.InvalidName e){
-            throw new CORBAException(e);
+            throw new CorbaException(e);
         }
     }
 
@@ -43,8 +43,8 @@ public class CORBAClient implements AutoCloseable {
      * 
      * @param serviceName
      * @param helpClass
-     * @return
-     * @throws CORBAException
+     * @return remote object
+     * @throws CorbaException
      * which encapsulate:
      *     java.lang.SecurityException
      *     java.lang.NoSuchMethodException
@@ -54,7 +54,7 @@ public class CORBAClient implements AutoCloseable {
      *     org.omg.CosNaming.NamingContextPackage.CannotProceed
      *     org.omg.CosNaming.NamingContextPackage.InvalidName
      */
-    public <SERVICE, HELP> SERVICE lookup(String serviceName, Class<HELP> helpClass) throws CORBAException {
+    public <SERVICE, HELP> SERVICE lookup(String serviceName, Class<HELP> helpClass) throws CorbaException {
         try {
             Method m = helpClass.getMethod("narrow", org.omg.CORBA.Object.class);
             return (SERVICE) m.invoke(null, ncRef.resolve_str(serviceName));
@@ -65,7 +65,7 @@ public class CORBAClient implements AutoCloseable {
                 | org.omg.CosNaming.NamingContextPackage.NotFound
                 | org.omg.CosNaming.NamingContextPackage.CannotProceed
                 | org.omg.CosNaming.NamingContextPackage.InvalidName e) {
-            throw new CORBAException(e);
+            throw new CorbaException(e);
         }
     }
     

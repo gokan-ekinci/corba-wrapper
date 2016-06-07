@@ -47,13 +47,13 @@ public class HelloImpl extends HelloPOA{
 
 ### 3. Create Corba Server
 ```
-import fr.ekinci.corbawrapper.CORBAServer;
+import fr.ekinci.corbawrapper.CorbaServer;
 import HelloApp.HelloHelper;
 import HelloApp.HelloImpl;
 
 public class CorbaServerDemo {
     public static void main(String args[]) throws Exception {
-        CORBAServer server = new CORBAServer("127.0.0.1", 1050);
+        CorbaServer server = new CorbaServer("127.0.0.1", 1050);
         server.addService("Hello", new HelloImpl(), HelloHelper.class);
         server.run();
     }
@@ -62,13 +62,13 @@ public class CorbaServerDemo {
 
 ### 4. Create Corba Client
 ```
-import fr.ekinci.corbawrapper.CORBAClient;
+import fr.ekinci.corbawrapper.CorbaClient;
 import HelloApp.Hello;
 import HelloApp.HelloHelper;
 
 public class CorbaClientDemo {
     public static void main(String args[]) throws Exception {
-        CORBAClient client = new CORBAClient("127.0.0.1", 1050);
+        CorbaClient client = new CorbaClient("127.0.0.1", 1050);
         Hello hello = client.<Hello, HelloHelper>lookup("Hello", HelloHelper.class);
         System.out.println(hello.sayHello());
     }
